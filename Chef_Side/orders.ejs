@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders Dashboard</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+  <%- include("../partials/navbar") %>
+
+  <div class="container mt-5">
+    <h2 class="mb-4">Restaurant Orders</h2>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Table</th>
+          <th>Items</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% orders.forEach(order => { %>
+          <tr data-order-id="<%= order._id %>">
+            <td><%= order.tableNumber %></td>
+            <td>
+              <ul>
+                <% order.items.forEach(item => { %>
+                  <li><%= item.name %> - ₹<%= item.price %> (x<%= item.quantity %>)</li>
+                <% }) %>
+              </ul>
+            </td>
+            <td>
+              <% if (order.status === "pending") { %>
+                <span class="badge badge-warning">Pending</span>
+              <% } else if (order.status === "accepted") { %>
+                <span class="badge badge-success">Accepted</span>
+              <% } else if (order.status === "rejected") { %>
+                <span class="badge badge-danger">Rejected</span>
+              <% } else { %>
+                <span class="badge badge-secondary"><%= order.status %></span>
+              <% } %>
+            </td>
+            <td>
+              <button class="btn btn-success btn-sm accept-btn" data-status="accepted">✅ Accept</button>
+              <button class="btn btn-danger btn-sm reject-btn" data-status="rejected">❌ Reject</button>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <%- include("../partials/footer") %>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add event listeners for Accept/Reject buttons
+      const acceptButtons = document.querySelectorAll('.accept-btn');
+      const rejectButtons = document.querySelectorAll('.reject-btn');
+
+      acceptButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const orderId = this.closest('tr').dataset.orderId;
+          const status = this.dataset.status;
+          
+          // Send AJAX request to update the order status
+          fetch(`/orders/update/${orderId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status })
+          })
+          .then(response => response.json())
+          .then(updatedOrder => {
+            // Update status in the DOM
+            const row = document.querySelector(`tr[data-order-id="${updatedOrder._id}"]`);
+            const statusCell = row.querySelector('td:nth-child(3)');
+            statusCell.innerHTML = `<span class="badge badge-${status === 'accepted' ? 'success' : 'danger'}">${updatedOrder.status}</span>`;
+          })
+          .catch(err => console.error('Error:', err));
+        });
+      });
+
+      rejectButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const orderId = this.closest('tr').dataset.orderId;
+          const status = this.dataset.status;
+
+          // Send AJAX request to update the order status
+          fetch(`/orders/update/${orderId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status })
+          })
+          .then(response => response.json())
+          .then(updatedOrder => {
+            // Update status in the DOM
+            const row = document.querySelector(`tr[data-order-id="${updatedOrder._id}"]`);
+            const statusCell = row.querySelector('td:nth-child(3)');
+            statusCell.innerHTML = `<span class="badge badge-${status === 'accepted' ? 'success' : 'danger'}">${updatedOrder.status}</span>`;
+          })
+          .catch(err => console.error('Error:', err));
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>

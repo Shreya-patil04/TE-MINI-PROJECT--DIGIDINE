@@ -1,0 +1,103 @@
+#include <Keypad.h>
+#include <U8g2lib.h>
+
+// Keypad setup
+const byte ROWS = 4;
+const byte COLS = 4;
+char keys[ROWS][COLS] = {
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+byte rowPins[ROWS] = {32, 33, 25, 26};
+byte colPins[COLS] = {27, 14, 12, 13};
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+String categories[] = {"Appetizers", "Main Course", "Desserts", "Beverages"};
+String items[4][3] = {
+  {"Spring Rolls", "Samosas", "Bruschetta"},
+  {"Chicken Biryani", "Paneer Butter Masala", "Pasta Primavera"},
+  {"Gulab Jamun", "Cheesecake", "Chocolate Lava Cake"},
+  {"Coke", "Lemonade", "Iced Tea"}
+};
+float prices[4][3] = {
+  {150, 120, 180},
+  {300, 250, 350},
+  {100, 200, 250},
+  {50, 60, 70}
+};
+
+struct CartItem {
+  String name;
+  float price;
+  int quantity;
+};
+CartItem cart[10];
+int cartIndex = 0;
+
+int currentLevel = 0;
+int selectedCategory = -1;
+String lastOrderId = "";
+String lastStatus = "";
+unsigned long lastPollTime = 0;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(18, OUTPUT); // Green LED
+  pinMode(19, OUTPUT); // Red LED
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  Serial.println("Connected to WiFi");
+
+  u8g2.begin();
+  u8g2.setFont(u8g2_font_ncenB08_tr);
+  displayCategories();
+
+  server.on("/led", HTTP_POST, handleLEDControl);
+  server.begin();
+  Serial.println("ESP32 HTTP Server started.");
+}
+
+void loop() {
+  char key = keypad.getKey();
+
+  if (key) {
+    Serial.println(key);
+    if (currentLevel == 0) handleCategorySelection(key);
+    else if (currentLevel == 1) handleItemSelection(key);
+    else if (currentLevel == 2) handleCartActions(key);
+  }
+
+  if (lastOrderId != "" && millis() - lastPollTime > 3000) {
+    checkOrderStatus();
+    lastPollTime = millis();
+  }
+
+  server.handleClient();
+}
+
+void displayCategories() {
+  u8g2.clearBuffer();
+  u8g2.setCursor(0, 10);
+  u8g2.print("Select Category:");
+  for (int i = 0; i < 4; i++) {
+    u8g2.setCursor(0, 22 + i * 12);
+    u8g2.printf("%d. %s", i + 1, categories[i].c_str());
+  }
+  u8g2.sendBuffer();
+}
+
+void displayItems(int categoryIndex) {
+  u8g2.clearBuffer();
+  u8g2.setCursor(0, 10);
+  u8g2.printf("Items: %s", categories[categoryIndex].c_str());
+  for (int i = 0; i < 3; i++) {
+    u8g2.setCursor(0, 22 + i * 12);
+    u8g2.printf("%d. %s - ₹%.2f", i + 1, items[categoryIndex][i].c_str(), prices[categoryIndex][i]);
+  }
+  u8g2.sendBuffer();
+}

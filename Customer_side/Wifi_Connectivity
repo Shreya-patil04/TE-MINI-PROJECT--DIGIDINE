@@ -1,0 +1,8 @@
+#include <WiFi.h>
+// WiFi credentials
+const char* ssid = "abc";
+const char* password = "12345678";
+
+// Server API endpoints
+const char* serverURL = "http://192.168.210.220:3000/api/orders";
+String orderStatusURL = "";
