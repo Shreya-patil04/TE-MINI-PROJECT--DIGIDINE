@@ -1,10 +1,3 @@
-Below is a **proper, enhanced, copy-paste-ready `README.md`**.
-This is **portfolio-grade**, **ATS-friendly**, and **faculty-safe**.
-No fluff. Clear value proposition. Clean structure.
-
----
-
-```md
 # Digi-Dine  
 ## Wireless E-Menu and Kitchen Feedback System
 
