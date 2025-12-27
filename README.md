@@ -130,22 +130,3 @@ Final Year B.E. – Electronics & Telecommunication Engineering
 This project is developed for academic purposes.
 ```
 
----
-
-### Bottom line
-
-This README:
-
-* Works for **college evaluation**
-* Works for **placements**
-* Works for **GitHub portfolio**
-* Uses **industry-standard terminology**
-* Clearly shows **your technical ownership**
-
-If you want:
-
-* a **shorter ATS-only version**
-* a **GitHub “star-worthy” version**
-* or a **resume-ready project description**
-
-say the word.
